@@ -1,41 +1,55 @@
 import streamlit as st
+import tensorflow as tf
 import numpy as np
-import tflite_runtime.interpreter as tflite
 from PIL import Image
 
+st.set_page_config(page_title="Water Pollution Detector", layout="centered")
+
+# ---------------------------
+# Load Model
+# ---------------------------
 @st.cache_resource
 def load_model():
-    interpreter = tflite.Interpreter(model_path="water_pollution_model.tflite")
-    interpreter.allocate_tensors()
-    return interpreter
+    model = tf.keras.models.load_model("water_pollution_clean.keras")
+    return model
 
-interpreter = load_model()
+model = load_model()
 
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+# ---------------------------
+# Preprocessing
+# ---------------------------
+def preprocess(img):
+    img = img.resize((224, 224))
+    img = np.array(img, dtype=np.float32) / 255.0
+    img = np.expand_dims(img, axis=0)
+    return img
 
-def predict(img):
-    img = img.resize((224,224))
-    x = np.array(img, dtype=np.float32) / 255.0
-    x = np.expand_dims(x, axis=0)
+# ---------------------------
+# UI
+# ---------------------------
+st.title("🌍 Water Pollution Detection System")
+st.write(
+    """
+    This AI-powered image classifier detects whether a water body is **Clean** or **Polluted**.
+    Built using **MobileNetV2 + Transfer Learning** aligned with **UN SDG 6 — Clean Water & Sanitation**.
+    """
+)
 
-    interpreter.set_tensor(input_details[0]['index'], x)
-    interpreter.invoke()
-    pred = interpreter.get_tensor(output_details[0]['index'])[0][0]
+uploaded_file = st.file_uploader("Upload an image of a water body", type=["jpg", "jpeg", "png"])
 
-    label = "🌊 Polluted Water" if pred > 0.5 else "💧 Clean Water"
-    confidence = pred if pred > 0.5 else (1 - pred)
-
-    return label, float(confidence)
-
-st.title("🌍 Water Pollution Detector")
-uploaded = st.file_uploader("Upload water image", type=["jpg","jpeg","png"])
-
-if uploaded:
-    img = Image.open(uploaded)
+if uploaded_file:
+    img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_column_width=True)
 
     if st.button("Predict"):
-        label, conf = predict(img)
-        st.success(f"Prediction: {label}")
-        st.info(f"Confidence: {conf*100:.2f}%")
+        x = preprocess(img)
+        prediction = model.predict(x)[0][0]
+
+        label = "🌊 Polluted Water" if prediction > 0.5 else "💧 Clean Water"
+        confidence = prediction if prediction > 0.5 else (1 - prediction)
+
+        st.subheader(f"Prediction: **{label}**")
+        st.info(f"Confidence: **{confidence * 100:.2f}%**")
+
+st.markdown("---")
+st.caption("Developed by Ram • Powered by TensorFlow + Streamlit")
