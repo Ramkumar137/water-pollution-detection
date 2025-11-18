@@ -5,51 +5,33 @@ from PIL import Image
 
 st.set_page_config(page_title="Water Pollution Detector", layout="centered")
 
-# ---------------------------
-# Load Model
-# ---------------------------
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("water_pollution_clean.keras")
+    model = tf.keras.models.load_model("water_pollution_model")
     return model
 
 model = load_model()
 
-# ---------------------------
-# Preprocessing
-# ---------------------------
 def preprocess(img):
     img = img.resize((224, 224))
     img = np.array(img, dtype=np.float32) / 255.0
-    img = np.expand_dims(img, axis=0)
-    return img
+    return np.expand_dims(img, axis=0)
 
-# ---------------------------
-# UI
-# ---------------------------
-st.title("🌍 Water Pollution Detection System")
-st.write(
-    """
-    This AI-powered image classifier detects whether a water body is **Clean** or **Polluted**.
-    Built using **MobileNetV2 + Transfer Learning** aligned with **UN SDG 6 — Clean Water & Sanitation**.
-    """
-)
+st.title("🌍 Water Pollution Detection")
+st.write("Upload an image to classify clean vs polluted water.")
 
-uploaded_file = st.file_uploader("Upload an image of a water body", type=["jpg", "jpeg", "png"])
+uploaded = st.file_uploader("Upload image", type=["jpg", "jpeg", "png"])
 
-if uploaded_file:
-    img = Image.open(uploaded_file)
+if uploaded:
+    img = Image.open(uploaded)
     st.image(img, caption="Uploaded Image", use_column_width=True)
 
     if st.button("Predict"):
         x = preprocess(img)
-        prediction = model.predict(x)[0][0]
+        pred = model.predict(x)[0][0]
 
-        label = "🌊 Polluted Water" if prediction > 0.5 else "💧 Clean Water"
-        confidence = prediction if prediction > 0.5 else (1 - prediction)
+        label = "🌊 Polluted Water" if pred > 0.5 else "💧 Clean Water"
+        conf = pred if pred > 0.5 else (1 - pred)
 
-        st.subheader(f"Prediction: **{label}**")
-        st.info(f"Confidence: **{confidence * 100:.2f}%**")
-
-st.markdown("---")
-st.caption("Developed by Ram • Powered by TensorFlow + Streamlit")
+        st.success(f"Prediction: {label}")
+        st.info(f"Confidence: {conf * 100:.2f}%")
