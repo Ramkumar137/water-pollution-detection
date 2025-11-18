@@ -56,9 +56,34 @@ A complete training workflow, evaluation reports, model outputs, and a simple Gr
 - Stage 1: Freeze CNN layers → Train classifier  
 - Stage 2: Unfreeze last 20–25 layers → Fine-tune with lower LR  
 
-### **Final Test Accuracy:** ~92–94%
+---
+
+## Final Model Performance (Week 3)
+
+The fine-tuned MobileNetV2 model delivered strong performance across all metrics.
+
+### **Overall Accuracy**
+**Fine-tuned Model Accuracy:** **92.86%**
 
 ---
+
+### **Classification Report**
+
+| Class      | Precision | Recall | F1-Score | Support |
+|------------|-----------|--------|----------|---------|
+| **Clean**      | 1.00      | 0.89   | 0.94     | 9       |
+| **Polluted**   | 0.83      | 1.00   | 0.91     | 5       |
+
+**Accuracy:** 93%  
+**Macro Avg F1:** 0.93  
+**Weighted Avg F1:** 0.93  
+
+---
+
+### **ROC–AUC Score**
+**ROC–AUC:** **1.000**  
+
+
 
 ## Dataset Information
 
